@@ -1,0 +1,53 @@
+name: News bot
+
+on:
+  # Расписание в UTC. */10 = каждые 10 минут (GitHub может опаздывать на несколько минут).
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write  # чтобы сохранять seen.json (список уже отправленных новостей)
+
+concurrency:
+  group: news-bot
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch and publish news
+        env:
+          # Секреты (Settings -> Secrets and variables -> Actions -> Secrets)
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Переменные (там же, вкладка Variables)
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID || '@Paslednienovosti' }}
+          FEEDS: ${{ vars.FEEDS || 'https://lenta.ru/rss/news,https://feeds.bbci.co.uk/russian/rss.xml' }}
+          PHOTO_FROM_PAGE: ${{ vars.PHOTO_FROM_PAGE || '1' }}
+          SUMMARIZE: ${{ vars.SUMMARIZE || '0' }}
+          MAX_PER_RUN: ${{ vars.MAX_PER_RUN || '5' }}
+          MAX_AGE_HOURS: ${{ vars.MAX_AGE_HOURS || '6' }}
+        run: python news_bot.py
+
+      - name: Save seen list
+        run: |
+          git config user.name "news-bot"
+          git config user.email "news-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Update seen list"
+            git push
+          fi
