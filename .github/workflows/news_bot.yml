@@ -35,7 +35,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Переменные (там же, вкладка Variables)
           TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID || '@Paslednienovosti' }}
-          FEEDS: ${{ vars.FEEDS || 'https://lenta.ru/rss/news,https://feeds.bbci.co.uk/russian/rss.xml' }}
+          FEEDS: ${{ vars.FEEDS || 'https://bits.media/rss2/,https://forklog.com/feed,https://ru.investing.com/rss/news.rss,https://www.vedomosti.ru/rss/rubric/finance' }}
           PHOTO_FROM_PAGE: ${{ vars.PHOTO_FROM_PAGE || '1' }}
           SUMMARIZE: ${{ vars.SUMMARIZE || '0' }}
           MAX_PER_RUN: ${{ vars.MAX_PER_RUN || '5' }}
